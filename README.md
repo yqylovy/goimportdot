@@ -17,6 +17,12 @@ dot -Tsvg pkg.dot >pkg.svg
 
 ## Example
 
+Install `go.uber.org/zap`
+
+```
+go get go.uber.org/zap
+```
+
 Get a graph of `go.uber.org/zap`
 
 ```
