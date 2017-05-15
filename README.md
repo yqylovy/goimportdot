@@ -10,7 +10,7 @@ GoImportDot is a tiny tool to generate a `dot` file (used for Graphviz) of impor
 ## Quick Start
 
 ```
-go get -u yqylovy/goimportdot
+go get -u github.com/yqylovy/goimportdot
 goimportdot -pkg=yourpackagename > pkg.dot 
 dot -Tsvg pkg.dot >pkg.svg
 ```

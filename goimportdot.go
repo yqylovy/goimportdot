@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"yqylovy/goimportdot/core"
+	"github.com/yqylovy/goimportdot/core"
 )
 
 func main() {
