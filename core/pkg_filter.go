@@ -66,3 +66,46 @@ func ParsePkgWildcardStr(str string) (fs []PkgFilter, err error) {
 	}
 	return
 }
+
+func PkgLevelFilter(level int) PkgFilter {
+	return func(imps map[string]StrSet) (ret map[string]StrSet) {
+		if level < 0 {
+			return imps
+		}
+		// find the root
+		// which are not pointed to
+		allTarget := NewStrSet()
+		for _, targets := range imps {
+			allTarget.Merge(targets)
+		}
+		levelMap := map[string]int{}
+		for pkg := range imps {
+			if !allTarget.Contains(pkg) {
+				levelMap[pkg] = 0
+			}
+		}
+		for i := 0; i < level; i++ {
+			nextLevel := NewStrSet()
+			for pkg, pkgLevel := range levelMap {
+				if pkgLevel != i {
+					continue
+				}
+				for target := range imps[pkg] {
+					nextLevel.Put(target)
+				}
+			}
+			for next := range nextLevel {
+				levelMap[next] = i + 1
+			}
+		}
+
+		ret = make(map[string]StrSet, len(levelMap))
+		for pkg, lvl := range levelMap {
+			ret[pkg] = imps[pkg]
+			if lvl == level {
+				continue
+			}
+		}
+		return ret
+	}
+}

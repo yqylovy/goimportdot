@@ -17,12 +17,14 @@ func main() {
 	var root = ""
 	var filters = ""
 
+	var level = -1
+
 	flag.BoolVar(&ignoreGit, "ignoregit", ignoreGit, "ignore files in git")
 	flag.BoolVar(&ignoreTest, "ignoretest", ignoreTest, "ignore test files")
 	flag.BoolVar(&onlySelfPkg, "only", onlySelfPkg, "only to draw the input package")
 	flag.StringVar(&filters, "filter", "", "filter to (ignore/only include) package match wildcard,example: -filter=w:a*,*b;b:c means only include package start with a and ends with b, ignore package named c")
 	flag.StringVar(&root, "root", root, "only draw package with the graph start from root")
-
+	flag.IntVar(&level, "level", level, "show how many level , -1 for all")
 	flag.StringVar(&packageName, "pkg", packageName, "the package to draw")
 	flag.Parse()
 
@@ -59,6 +61,10 @@ func main() {
 		return
 	}
 	pkgFilters = append(pkgFilters, moreFilters...)
+
+	if level >= 0 {
+		pkgFilters = append(pkgFilters, core.PkgLevelFilter(level))
+	}
 
 	for _, f := range pkgFilters {
 		pkgAndImports = f(pkgAndImports)
