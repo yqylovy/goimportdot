@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/yqylovy/goimportdot/core"
 )
@@ -13,19 +12,15 @@ func main() {
 	var ignoreGit = true
 	var ignoreTest = true
 	var onlySelfPkg = true
-	var prefixWhite = ""
-	var prefixBlack = ""
-	var nameWhite = ""
-	var nameBlack = ""
-	var root = ""
+
 	var packageName = ""
+	var root = ""
+	var filters = ""
+
 	flag.BoolVar(&ignoreGit, "ignoregit", ignoreGit, "ignore files in git")
 	flag.BoolVar(&ignoreTest, "ignoretest", ignoreTest, "ignore test files")
 	flag.BoolVar(&onlySelfPkg, "only", onlySelfPkg, "only to draw the input package")
-	flag.StringVar(&prefixWhite, "prefix_white", prefixWhite, "only include package with this prefix,split by ':' ")
-	flag.StringVar(&prefixBlack, "prefix_black", prefixBlack, "ignore package with this prefix,split by ':' ")
-	flag.StringVar(&nameWhite, "name_white", nameWhite, "only include package with this name,split by ':' ")
-	flag.StringVar(&nameBlack, "name_black", nameBlack, "ignore package with this name,split by ':' ")
+	flag.StringVar(&filters, "filter", "", "filter to (ignore/only include) package match wildcard,example: -filter=w:a*,*b;b:c means only include package start with a and ends with b, ignore package named c")
 	flag.StringVar(&root, "root", root, "only draw package with the graph start from root")
 
 	flag.StringVar(&packageName, "pkg", packageName, "the package to draw")
@@ -53,23 +48,17 @@ func main() {
 
 	pkgFilters := []core.PkgFilter{}
 	if onlySelfPkg {
-		pkgFilters = append(pkgFilters, core.PkgPrefixFilter(false, packageName))
+		pkgFilters = append(pkgFilters, core.PkgWildcardFilter(false, packageName+"*"))
 	}
 	if root != "" {
 		pkgFilters = append(pkgFilters, core.RootFilter(root))
 	}
-	if prefixWhite != "" {
-		pkgFilters = append(pkgFilters, core.PkgPrefixFilter(false, strings.Split(prefixWhite, ":")...))
+	moreFilters, err := core.ParsePkgWildcardStr(filters)
+	if err != nil {
+		fmt.Printf("No right filter [%s], please check!", filters)
+		return
 	}
-	if prefixBlack != "" {
-		pkgFilters = append(pkgFilters, core.PkgPrefixFilter(true, strings.Split(prefixBlack, ":")...))
-	}
-	if nameWhite != "" {
-		pkgFilters = append(pkgFilters, core.PkgNameFilter(false, strings.Split(nameWhite, ":")...))
-	}
-	if nameBlack != "" {
-		pkgFilters = append(pkgFilters, core.PkgNameFilter(true, strings.Split(nameBlack, ":")...))
-	}
+	pkgFilters = append(pkgFilters, moreFilters...)
 
 	for _, f := range pkgFilters {
 		pkgAndImports = f(pkgAndImports)

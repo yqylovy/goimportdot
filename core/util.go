@@ -25,7 +25,13 @@ func PkgOfFile(gofile string) (pkg string) {
 
 type StrSet map[string]bool
 
-func NewStrSet() StrSet                           { return StrSet(make(map[string]bool)) }
+func NewStrSet(strs ...string) StrSet {
+	ss := StrSet(make(map[string]bool))
+	for _, str := range strs {
+		ss.Put(str)
+	}
+	return ss
+}
 func (this StrSet) Put(str string)                { this[str] = true }
 func (this StrSet) Del(str string)                { delete(this, str) }
 func (this StrSet) Contains(str string) (ok bool) { _, ok = this[str]; return ok }

@@ -1,6 +1,10 @@
 package core
 
-import "strings"
+import (
+	"regexp"
+
+	"strings"
+)
 
 type PkgFilter func(map[string]StrSet) map[string]StrSet
 
@@ -21,46 +25,25 @@ func RootFilter(root string) PkgFilter {
 		return ret
 	}
 }
-func PkgNameFilter(isBlack bool, pkgs ...string) PkgFilter {
-	ignores := NewStrSet()
+
+func PkgWildcardFilter(isBlack bool, pkgs ...string) PkgFilter {
+	regs := []*regexp.Regexp{}
 	for _, pkg := range pkgs {
-		ignores.Put(pkg)
+		rgp := regexp.MustCompile("^" + strings.Replace(pkg, "*", ".*", -1) + "$")
+		regs = append(regs, rgp)
 	}
-	return func(imps map[string]StrSet) (ret map[string]StrSet) {
-		ret = make(map[string]StrSet)
-		for pkg, imps := range imps {
-			if reverse(isBlack, ignores.Contains(pkg)) {
-				continue
-			}
-			for k := range imps {
-				if reverse(isBlack, ignores.Contains(k)) {
-					imps.Del(k)
-				}
-			}
-			ret[pkg] = imps
-		}
-		return ret
-	}
-}
-
-func PkgPrefixFilter(isBlack bool, prefixs ...string) PkgFilter {
-	ignores := NewStrSet()
-	for _, pkg := range prefixs {
-		ignores.Put(pkg)
-	}
-
 	return func(imps map[string]StrSet) (ret map[string]StrSet) {
 		ret = make(map[string]StrSet)
 	BIG:
 		for pkg, imps := range imps {
-			for str := range ignores {
-				if reverse(isBlack, strings.HasPrefix(pkg, str)) {
+			for _, rgp := range regs {
+				if isBlack == rgp.MatchString(pkg) {
 					continue BIG
 				}
 			}
 			for k := range imps {
-				for str := range ignores {
-					if reverse(isBlack, strings.HasPrefix(k, str)) {
+				for _, rgp := range regs {
+					if isBlack == rgp.MatchString(k) {
 						imps.Del(k)
 					}
 				}
@@ -71,10 +54,15 @@ func PkgPrefixFilter(isBlack bool, prefixs ...string) PkgFilter {
 	}
 }
 
-func reverse(isBlack, result bool) bool {
-	if isBlack {
-		return result
-	} else {
-		return !result
+func ParsePkgWildcardStr(str string) (fs []PkgFilter, err error) {
+	if str == "" {
+		return
 	}
+	strArr := strings.Split(str, ";")
+	for _, str := range strArr {
+		str = strings.TrimSpace(str)
+		wb_pkgs := strings.SplitN(str, ":", 2)
+		fs = append(fs, PkgWildcardFilter(wb_pkgs[0] == "b", strings.Split(wb_pkgs[1], ",")...))
+	}
+	return
 }
