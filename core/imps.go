@@ -26,6 +26,9 @@ func GetImports(pkg string, filters ...FileFilter) (pkgimports map[string]StrSet
 	}
 	pkgimports = make(map[string]StrSet)
 	filepath.Walk(fullpath, func(fp string, info os.FileInfo, err error) error {
+		if info.IsDir() {
+			return nil
+		}
 		for _, filter := range filters {
 			if !filter.IsBlack {
 				continue
