@@ -1,6 +1,7 @@
 package core
 
 import (
+	"bytes"
 	"go/parser"
 	"go/token"
 	"path/filepath"
@@ -20,7 +21,11 @@ func ParseGoImport(gofile string) (ss StrSet, err error) {
 	return
 }
 func PkgOfFile(gofile string) (pkg string) {
-	return strings.SplitN(filepath.Dir(gofile), "/src/", 2)[1]
+	buf := new(bytes.Buffer)
+	buf.WriteRune(filepath.Separator)
+	buf.WriteString("src")
+	buf.WriteRune(filepath.Separator)
+	return strings.SplitN(filepath.Dir(gofile), buf.String(), 2)[1]
 }
 
 type StrSet map[string]bool
