@@ -27,7 +27,7 @@ func convertpath(pkgimports map[string]core.StrSet) map[string]core.StrSet {
 	}
 	return pkgimportsnew
 }
-func main() {
+func main() { //test
 	var ignoreGit = true
 	var ignoreTest = true
 	var onlySelfPkg = true
