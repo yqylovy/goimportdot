@@ -16,8 +16,10 @@ func RootFilter(root string) PkgFilter {
 			newcur := NewStrSet()
 			for _, pkg := range cur {
 				if pkgimp, ok := imps[pkg]; ok {
-					ret[pkg] = pkgimp
-					newcur.Merge(pkgimp)
+					if _, ok = ret[pkg]; !ok {
+						ret[pkg] = pkgimp
+						newcur.Merge(pkgimp)
+					}
 				}
 			}
 			cur = newcur.Array()

@@ -5,10 +5,29 @@ import (
 	"fmt"
 	"os"
 
+	"path/filepath"
+	"strings"
+
 	"github.com/yqylovy/goimportdot/core"
 )
 
-func main() {
+func convertpath(pkgimports map[string]core.StrSet) map[string]core.StrSet {
+	if filepath.Separator != '\\' {
+		return pkgimports
+	}
+	pkgimportsnew := make(map[string]core.StrSet)
+	for pkgName, deps := range pkgimports {
+		newPkgName := strings.Replace(pkgName, "\\", "/", -1)
+		newdep := make(core.StrSet)
+		pkgimportsnew[newPkgName] = newdep
+		for dep, _ := range deps {
+			newdepName := strings.Replace(dep, "\\", "/", -1)
+			newdep[newdepName] = deps[dep]
+		}
+	}
+	return pkgimportsnew
+}
+func main() { //test
 	var ignoreGit = true
 	var ignoreTest = true
 	var onlySelfPkg = true
@@ -47,7 +66,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-
+	pkgAndImports = convertpath(pkgAndImports)
 	pkgFilters := []core.PkgFilter{}
 	if onlySelfPkg {
 		pkgFilters = append(pkgFilters, core.PkgWildcardFilter(false, packageName+"*"))
