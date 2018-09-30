@@ -6,14 +6,13 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"strings"
 )
 
 func GetImports(pkg string, filters ...FileFilter) (pkgimports map[string]StrSet, err error) {
 	fullpath := ""
 
 	goPath := os.Getenv("GOPATH")
-	gopaths := strings.Split(goPath, ":")
+	gopaths := filepath.SplitList(goPath)
 	for _, gp := range gopaths {
 		fp := filepath.Join(gp, "src", pkg)
 		if _, err := os.Stat(fp); err == nil {

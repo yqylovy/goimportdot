@@ -20,24 +20,27 @@ func ParseGoImport(gofile string) (ss StrSet, err error) {
 	return
 }
 func PkgOfFile(gofile string) (pkg string) {
-	return strings.SplitN(filepath.Dir(gofile), "/src/", 2)[1]
+	unixPath := filepath.ToSlash(filepath.Dir(gofile))
+	return strings.SplitN(unixPath, "/src/", 2)[1]
 }
 
-type StrSet map[string]bool
+var placeholder = struct{}{}
+
+type StrSet map[string]struct{}
 
 func NewStrSet(strs ...string) StrSet {
-	ss := StrSet(make(map[string]bool))
+	ss := StrSet(make(map[string]struct{}))
 	for _, str := range strs {
 		ss.Put(str)
 	}
 	return ss
 }
-func (this StrSet) Put(str string)                { this[str] = true }
+func (this StrSet) Put(str string)                { this[str] = placeholder }
 func (this StrSet) Del(str string)                { delete(this, str) }
 func (this StrSet) Contains(str string) (ok bool) { _, ok = this[str]; return ok }
 func (this StrSet) Merge(that StrSet) {
 	for str := range that {
-		this[str] = true
+		this[str] = placeholder
 	}
 }
 func (this StrSet) Array() []string {
